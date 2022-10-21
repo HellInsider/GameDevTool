@@ -1,0 +1,63 @@
+{
+    "apps": [
+      {
+        "appid": 1897482,
+        "name": ""
+      },
+{
+        "appid": 1101070,
+        "name": "鬼哭岭：序"
+      },
+      {
+        "appid": 1101080,
+        "name": "Hidden"
+      },
+      {
+        "appid": 1101100,
+        "name": "Chaos Dream: Retribution"
+      },
+      {
+        "appid": 1101110,
+        "name": "Tower!3D Pro - YMML airport"
+      },
+      {
+        "appid": 1101120,
+        "name": "Gunsmith Simulator"
+      },
+      {
+        "appid": 1101130,
+        "name": "My Typing Skill"
+      },
+      {
+        "appid": 1101140,
+        "name": "Fishing Adventure"
+      },
+      {
+        "appid": 1101150,
+        "name": "Catch The Head - Collector's Edition Upgrade"
+      },
+      {
+        "appid": 1101160,
+        "name": "Hyperspace Delivery Service - Soundtrack"
+      },
+      {
+        "appid": 1101170,
+        "name": "Mage Mania"
+      },
+      {
+        "appid": 1101180,
+        "name": "EverStopped"
+      },
+      {
+        "appid": 1101200,
+        "name": "After The Suns"
+      },
+      {
+        "appid": 1101220,
+        "name": "Anticorps VR"
+      },
+      {
+        "appid": 1101260,
+        "name": "FURRY GIRL PUZZLE"
+      }]
+}
