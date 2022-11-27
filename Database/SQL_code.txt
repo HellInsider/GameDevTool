@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS "DB_schema"."Release_date"
 (
     appid integer NOT NULL,
     comming_soon boolean DEFAULT true,
-    date integer,
+    date text,
     rdate_id integer NOT NULL,
     PRIMARY KEY (rdate_id),
     UNIQUE (appid)
@@ -142,6 +142,19 @@ CREATE TABLE IF NOT EXISTS "DB_schema"."Games_Prices"
     PRIMARY KEY ("Games_appid", "Prices_price_id")
 );
 
+CREATE TABLE IF NOT EXISTS "DB_schema"."Reviews"
+(
+    appid integer NOT NULL,
+    total_reviews integer DEFAULT 0,
+    total_positive integer DEFAULT 0,
+    total_negative integer DEFAULT 0,
+    review_score integer DEFAULT 0,
+    review_score_desc text,
+    review_id integer NOT NULL,
+    PRIMARY KEY (review_id),
+    UNIQUE (appid)
+);
+
 ALTER TABLE IF EXISTS "DB_schema"."Games"
     ADD FOREIGN KEY (critic_score_id)
     REFERENCES "DB_schema"."CriticScore" (score_id) MATCH SIMPLE
@@ -175,6 +188,15 @@ ALTER TABLE IF EXISTS "DB_schema"."Games"
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     DEFERRABLE INITIALLY DEFERRED
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS "DB_schema"."Games"
+    ADD COLUMN reviews_id integer,
+    ADD FOREIGN KEY (reviews_id)
+    REFERENCES "DB_schema"."Reviews" (review_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
     NOT VALID;
 
 
@@ -249,6 +271,7 @@ ALTER TABLE IF EXISTS "DB_schema"."Games_Prices"
     ON DELETE NO ACTION
     NOT VALID;
 
+END;
 
 
 CREATE OR REPLACE FUNCTION public.addPrice(_appid integer, _currency text, _initial integer, _final integer, _discount_percent integer, _country text)
