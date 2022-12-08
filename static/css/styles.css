@@ -1,0 +1,106 @@
+input.main_class
+{
+  width: 200pt;
+  height: 100pt;
+    /*line-height: 200%;*/
+   /* position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);*/
+    margin: 0pt;
+}
+
+input.simple_button
+{
+    width: 70pt;
+    height: 30pt;
+    background-color: cadetblue;
+    margin: 10pt;
+    alignment: center;
+    font-family: Tahoma;
+    position: relative;
+    left: 30pt;
+}
+button.simple_button
+{
+    width: 70pt;
+    height: 30pt;
+    background-color: cadetblue;
+    margin: 10pt;
+    alignment: center;
+    font-family: Tahoma;
+    position: relative;
+    left: 30pt;
+}
+
+input.simple_text
+{
+    width: 70pt;
+    height: 30pt;
+    margin: 10pt;
+    alignment: center;
+    font-family: Tahoma;
+    position: relative;
+    left: 30pt;
+}
+
+button.main_class
+{
+    width: 300pt;
+    height: 100pt;
+    background-color: cadetblue;
+    /*line-height: 200%;*/
+    /* position: relative;
+     left: 50%;
+     transform: translate(-50%, 0);*/
+    margin: 30pt;
+    alignment: center;
+    vertical-align: top;
+    font-size: 22pt;
+}
+button.home
+{
+    width: 80pt;
+    height: 35pt;
+    background-color: cadetblue;
+    /*line-height: 200%;*/
+    /* position: relative;
+     left: 50%;
+     transform: translate(-50%, 0);*/
+    margin: 10pt;
+    alignment: center;
+    vertical-align: top;
+}
+p.main_button_content
+{
+
+    font-family: Tahoma;
+    /*font-size: 12pt;*/
+    letter-spacing: 10pt;
+    line-height: 200%;
+    margin: 0pt;
+
+}
+p.main_class
+{
+
+    font-family: Tahoma;
+    /*font-size: 12pt;*/
+    letter-spacing: 5pt;
+    line-height: 200%;
+    margin: 0pt;
+
+}
+h1.main_class
+{
+    font-family: Tahoma;
+    /*font-size: 12pt;*/
+    letter-spacing: 5pt;
+    letter-spacing: 5pt;
+    text-align: center;
+	font-weight: normal;
+}
+img.mini
+{
+  width: 30%;
+  height: auto;
+}
