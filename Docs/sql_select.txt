@@ -1,0 +1,35 @@
+# dlc titles by appid (not required in our project, but testing our db operating skills)
+    SELECT name FROM "DB_schema"."Games" 
+    WHERE appid = ANY((SELECT dlc FROM "DB_schema"."Games" WHERE appid = 400)::INTEGER[])
+
+# note: we need a function, that can cast string to date, and create invalid date if string is invalid
+# built-in TO_DATE function crashes, when get invalid string
+    CREATE OR REPLACE FUNCTION to_date_or_null(ADate TEXT, AFormat TEXT) RETURNS CHAR AS
+    $BODY$
+    BEGIN
+       RETURN TO_DATE(ADate,AFormat);
+    EXCEPTION
+    WHEN others THEN RETURN TO_DATE(\'01 01 1000\',\'DD MM YYYY\');
+    END;
+    $BODY$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+# count games of genre 'genre_id' released between date1 and date2
+    SELECT COUNT(*) AS conv_date FROM 
+    (SELECT g.appid, g.release_date_id 
+        FROM "DB_schema"."Games" AS g 
+        INNER JOIN "DB_schema"."Games_Genre" AS gg 
+        ON g."appid" = gg."Games_appid" 
+        WHERE gg."Genre_genre_id" = ' + str(genre_id) + ') AS gr 
+    INNER JOIN "DB_schema"."Release_date" AS r 
+    ON gr.appid = r.appid 
+    WHERE TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' 
+    AND TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\'
+
+# count all games released between date1 and date2
+    SELECT COUNT(*) AS conv_date FROM 
+        (SELECT appid, release_date_id 
+        FROM "DB_schema"."Games") AS gr 
+    INNER JOIN "DB_schema"."Release_date" AS r 
+    ON gr.appid = r.appid 
+    WHERE TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' 
+    AND TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\'
