@@ -1,0 +1,100 @@
+# dlc titles by appid (not required in our project, but testing our db operating skills)
+    SELECT name FROM "DB_schema"."Games" 
+    WHERE appid = ANY((SELECT dlc FROM "DB_schema"."Games" WHERE appid = 400)::INTEGER[])
+
+# note: we need a function, that can cast string to date, and create invalid date if string is invalid
+# built-in TO_DATE function crashes, when get invalid string
+    CREATE OR REPLACE FUNCTION to_date_or_null(ADate TEXT, AFormat TEXT) RETURNS CHAR AS
+    $BODY$
+    BEGIN
+       RETURN TO_DATE(ADate,AFormat);
+    EXCEPTION
+    WHEN others THEN RETURN TO_DATE(\'01 01 1000\',\'DD MM YYYY\');
+    END;
+    $BODY$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+# count games of genre 'genre_id' released between date1 and date2
+    SELECT COUNT(*) AS conv_date FROM 
+        (SELECT g.appid, g.release_date_id 
+        FROM "DB_schema"."Games" AS g 
+        INNER JOIN "DB_schema"."Games_Genre" AS gg 
+        ON g."appid" = gg."Games_appid" 
+        WHERE gg."Genre_genre_id" = ' + str(genre_id) + ') AS gr 
+    INNER JOIN "DB_schema"."Release_date" AS r 
+    ON gr.appid = r.appid 
+    WHERE TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' 
+    AND TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\'
+
+# count all games released between date1 and date2
+    SELECT COUNT(*) AS conv_date FROM 
+        (SELECT appid, release_date_id 
+        FROM "DB_schema"."Games") AS gr 
+    INNER JOIN "DB_schema"."Release_date" AS r 
+    ON gr.appid = r.appid 
+    WHERE TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' 
+    AND TO_DATE(to_date_or_null(r.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\'
+
+# count games of genre 'genre_id' with different review score
+    SELECT review_score, COUNT(review_score) 
+    FROM "DB_schema"."Reviews" as r 
+    INNER JOIN "DB_schema"."Games_Genre" AS gg 
+    ON r."appid" = gg."Games_appid" 
+    WHERE gg."Genre_genre_id" = ' + str(genre_id) + ' '
+    GROUP BY review_score 
+    ORDER BY review_score
+
+# count median review_score of games of genre 'genre_id' per year
+    SELECT ye, PERCENTILE_CONT(0.5) 
+    WITHIN GROUP(ORDER BY dgri.review_score) 
+    FROM 
+        (SELECT *, 
+            EXTRACT(YEAR FROM 
+                TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\'))::INTEGER 
+            AS ye 
+        FROM 
+            (SELECT * 
+            FROM "DB_schema"."Reviews" as r 
+            INNER JOIN 
+                (SELECT gg."Games_appid" 
+                FROM "DB_schema"."Games_Genre" AS gg 
+                INNER JOIN "DB_schema"."Genre" AS g 
+                ON gg."Genre_genre_id" = g.genre_id 
+                WHERE g.description = \'' + genre_str + '\') as gi 
+            ON r."appid" = gi."Games_appid" 
+            WHERE r.review_score != 0) AS gri 
+        INNER JOIN "DB_schema"."Release_date" AS d 
+        ON gri.appid = d.appid) AS dgri 
+    GROUP BY ye 
+    ORDER BY ye
+
+# count average review_score of games of genre 'genre_id' per year
+    SELECT ye, AVG(review_score)::FLOAT as avgrs 
+    FROM 
+        (SELECT *, 
+            EXTRACT(YEAR FROM 
+                TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'),
+                 \'YYYY-MM-DD\'))::INTEGER 
+            AS ye 
+        FROM 
+            (SELECT * 
+            FROM "DB_schema"."Reviews" as r 
+            INNER JOIN 
+                (SELECT gg."Games_appid" 
+                FROM "DB_schema"."Games_Genre" AS gg 
+                INNER JOIN "DB_schema"."Genre" AS g 
+                ON gg."Genre_genre_id" = g.genre_id 
+                WHERE g.description = \'' + genre_str + '\') as gi 
+            ON r."appid" = gi."Games_appid" 
+            WHERE r.review_score != 0) AS gri 
+        INNER JOIN "DB_schema"."Release_date" AS d 
+        ON gri.appid = d.appid) AS dgri 
+    GROUP BY ye 
+    ORDER BY ye
+
+#  count games with different review score (distribution of review_score)
+    SELECT review_score, COUNT(review_score) 
+    FROM "DB_schema"."Reviews" 
+    GROUP BY review_score 
+    ORDER BY review_score
+
+
