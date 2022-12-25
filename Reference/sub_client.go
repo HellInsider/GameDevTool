@@ -12,7 +12,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -23,8 +22,9 @@ const (
 )
 
 var (
-	apikey = "33CF43A0E8B0A89B488CCE3063DED7FC"
-	output = "C:\\Dev\\Projects\\GameDevTool\\BashScripts\\GamesInfo\\GameInfoId_"
+	apikey       = "33CF43A0E8B0A89B488CCE3063DED7FC"
+	output       = "C:\\Dev\\Projects\\GameDevTool\\BashScripts\\GamesInfo\\GameInfoId_"
+	outputReview = "C:\\Dev\\Projects\\GameDevTool\\BashScripts\\GamesInfo\\Reviews\\"
 )
 
 func ConnectNatsStream() (stan.Conn, error) {
@@ -72,58 +72,39 @@ func MsgProcessing(sc stan.Conn) error { //, cache *model.Cashe
 }
 */
 
-func downloadGamesDataShell(lim, offset int) error {
-	err, games := GetBaseGamesData(lim, offset)
-	if err != nil {
-		panic(err)
-	}
-	var wg sync.WaitGroup
-	step := 20
-	for i := 0; i < len(games); i += step {
-		for j := 0; j < step; j++ {
-			wg.Add(1)
-			go loaderGoroutine(int(games[i+j].AppId), &wg)
-		}
-		wg.Wait()
-		time.Sleep(3)
-	}
-	return err
-}
-
 func downloadGamesData(lim, offset int) error {
 	err, games := GetBaseGamesData(lim, offset)
 	if err != nil {
 		panic(err)
 	}
-	var wg sync.WaitGroup
-	step := 1
 
-	for i := 0; i < len(games); i += step {
-		for j := 0; j < step; j++ {
-			resPath := "C:/Dev/Projects/GameDevTool/BashScripts/GamesInfo/" + "GameInfoId_" + strconv.Itoa(int(games[i+j].AppId)) + ".txt"
-			if _, err := os.Stat(resPath); err != nil {
-				wg.Add(1)
-				go loaderGoroutine(int(games[i+j].AppId), &wg)
-			} else {
-				fmt.Println(":Already exists")
-			}
-
+	for i := 0; i < len(games); i++ {
+		resPath := "C:/Dev/Projects/GameDevTool/BashScripts/GamesInfo/" + "GameInfoId_" + strconv.Itoa(int(games[i].AppId)) + ".txt"
+		if _, err := os.Stat(resPath); err != nil {
+			loadDetails(int(games[i].AppId))
+		} else {
+			//fmt.Println(":Details already exists")
 		}
-		wg.Wait()
-		time.Sleep(1000 * time.Millisecond)
+
+		resPath = "C:/Dev/Projects/GameDevTool/BashScripts/GamesInfo/Reviews" + strconv.Itoa(int(games[i].AppId)) + ".txt"
+		if _, err := os.Stat(resPath); err != nil {
+			loadReviews(int(games[i].AppId))
+		} else {
+			//fmt.Println(": Review already exists")
+		}
+
 	}
 	return err
 }
 
-func loaderGoroutine(appid int, wg *sync.WaitGroup) {
-	defer wg.Done()
+func loadDetails(appid int) {
 	//fmt.Println("Game with id ", appid)
 	url := "http://store.steampowered.com/api/appdetails?appids=" + strconv.Itoa(appid)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	time.Sleep(2000 * time.Millisecond)
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println(time.Now(), "Blocked connection. \n 	Waiting 5 min...")
 		time.Sleep(5 * time.Minute)
@@ -133,7 +114,36 @@ func loaderGoroutine(appid int, wg *sync.WaitGroup) {
 	var data []byte
 	data, err = io.ReadAll(resp.Body)
 	f, err := os.OpenFile(output+strconv.Itoa(appid)+".txt",
-		os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer f.Close()
+
+	_, err = f.Write(data)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func loadReviews(appid int) {
+	//fmt.Println("Game with id ", appid)
+	url := "https://store.steampowered.com/appreviews/" + strconv.Itoa(appid) + "?json=1"
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+	}
+	time.Sleep(2000 * time.Millisecond)
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(time.Now(), "Blocked connection. \n 	Waiting 5 min...")
+		time.Sleep(5 * time.Minute)
+		return
+	}
+
+	var data []byte
+	data, err = io.ReadAll(resp.Body)
+	f, err := os.OpenFile(outputReview+strconv.Itoa(appid)+".txt",
+		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -184,83 +194,14 @@ func updateGamesDetails(lim, offset int) error {
 	}
 
 	for _, g := range games {
-		resPath := "C:/Dev/Projects/GameDevTool/BashScripts/GamesInfo/" + "GameInfoId_" + strconv.Itoa(int(g.AppId)) + ".txt"
-
-		if _, err := os.Stat(resPath); err == nil {
-			count++
-			if count%100 == 0 {
-				fmt.Println("Count: ", count)
-			}
-
-			inputFile, err := os.Open(resPath)
-			if err != nil {
-				panic(err)
-				return err
-			}
-
-			var data []byte
-			data, err = ioutil.ReadAll(inputFile)
-			if err != nil {
-				inputFile.Close()
-				panic(err)
-				return err
-			}
-			inputFile.Close()
-
-			data = skipOneJsonLvlDetails(data, int(g.AppId))
-			if data == nil {
-				os.Remove(resPath)
-				continue
-			}
-			var appDetails InputDataModel.AppDetailsRequest
-			appDetails.Success = false
-
-			err = json.Unmarshal(data, &appDetails)
-			if err != nil {
-				log.Info(g.AppId, ": ", err)
-			}
-
-			appDetails.Data.PCRequirements.AppId = g.AppId
-			appDetails.Data.Price.AppId = g.AppId
-			appDetails.Data.Price.Country = "Russia"
-			appDetails.Data.ReleaseDate.AppId = g.AppId
-			appDetails.Data.Platform.AppId = g.AppId
-			appDetails.Data.Critic.AppId = g.AppId
-			appDetails.AppId = g.AppId
-
-			if appDetails.Success {
-				err = WriteGameDetails(appDetails)
-				if err != nil {
-					log.Info(g.AppId, ": ", err)
-				}
-			} else {
-				//log.Info(g.AppId, ": not success, deleting")
-				os.Remove(resPath)
-			}
-
+		count++
+		//fmt.Println(g.AppId)
+		if count%100 == 0 {
+			fmt.Println("Count: ", count)
 		}
 
-		/*
-			if _, err := os.Stat(resPath); errors.Is(err, os.ErrNotExist) {
-				cmd := exec.Command("powershell",
-					"C:/Dev/Projects/GameDevTool/BashScripts/GetGameInfo.sh",
-					strconv.Itoa(int(g.AppId)))
-
-				err := cmd.Start()
-				if err != nil {
-					return err
-				}
-
-				err = cmd.Wait()
-				if err != nil {
-					return err
-				}
-				time.Sleep(3 * time.Second)
-
-
-			}*/
-
-		//fmt.Printf("%+v", appDetails)
+		getDetails(g)
+		getReviews(g)
 	}
 
 	return err
@@ -291,4 +232,111 @@ func skipOneJsonLvlDetails(data []byte, id int) []byte {
 	}
 	res := data[i : len(data)-1]
 	return res
+}
+
+func getDetails(g InputDataModel.App) error {
+	resPath := "C:/Dev/Projects/GameDevTool/BashScripts/GamesInfo/" + "GameInfoId_" + strconv.Itoa(int(g.AppId)) + ".txt"
+
+	if _, err := os.Stat(resPath); err != nil {
+		loadDetails(int(g.AppId))
+	}
+
+	inputFile, err := os.Open(resPath)
+	if err != nil {
+		panic(err)
+		return err
+	}
+
+	var data []byte
+	data, err = ioutil.ReadAll(inputFile)
+	if err != nil {
+		inputFile.Close()
+		panic(err)
+		return err
+	}
+	inputFile.Close()
+
+	data = skipOneJsonLvlDetails(data, int(g.AppId))
+	if data == nil {
+		os.Remove(resPath)
+		log.Info("Bad details file", g.AppId)
+		return nil
+	}
+
+	var appDetails InputDataModel.AppDetailsRequest
+	appDetails.Success = false
+
+	err = json.Unmarshal(data, &appDetails)
+	if err != nil {
+		log.Info(g.AppId, ": ", err)
+	}
+
+	appDetails.Data.PCRequirements.AppId = g.AppId
+	appDetails.Data.Price.AppId = g.AppId
+	appDetails.Data.Price.Country = "Russia"
+	appDetails.Data.ReleaseDate.AppId = g.AppId
+	appDetails.Data.Platform.AppId = g.AppId
+	appDetails.Data.Critic.AppId = g.AppId
+	appDetails.AppId = g.AppId
+
+	if appDetails.Success {
+		err = WriteGameDetails(appDetails)
+		if err != nil {
+			log.Info(g.AppId, ": ", err)
+		}
+	} else {
+		//log.Info(g.AppId, ": not success, deleting")
+		os.Remove(resPath)
+	}
+
+	return nil
+}
+
+func getReviews(g InputDataModel.App) error {
+	resPath := outputReview + strconv.Itoa(int(g.AppId)) + ".txt"
+
+	if _, err := os.Stat(resPath); err != nil {
+		loadReviews(int(g.AppId))
+	}
+	inputFile, err := os.Open(resPath)
+	if err != nil {
+		panic(err)
+		return err
+	}
+
+	var data []byte
+	data, err = ioutil.ReadAll(inputFile)
+	if err != nil {
+		inputFile.Close()
+		panic(err)
+		return err
+	}
+	inputFile.Close()
+
+	if data == nil {
+		os.Remove(resPath)
+		log.Info("Bad review file ", g.AppId)
+		return nil
+	}
+
+	var appReview InputDataModel.Review
+	appReview.Success = 0
+	appReview.AppId = g.AppId
+
+	err = json.Unmarshal(data, &appReview)
+	if err != nil {
+		log.Info(g.AppId, ": ", err)
+	}
+
+	if appReview.Success == 1 {
+		err = WriteGameReviews(appReview)
+		if err != nil {
+			log.Info(g.AppId, ": ", err)
+		}
+	} else {
+		//log.Info(g.AppId, ": not success, deleting")
+		os.Remove(resPath)
+	}
+
+	return nil
 }

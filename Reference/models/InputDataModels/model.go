@@ -102,3 +102,16 @@ type Platforms struct {
 type Recommendation struct {
 	Total int `json:"total"`
 }
+
+type Review struct {
+	Success      int `json:"success"`
+	AppId        uint
+	QuerySummary struct {
+		NumReviews      int    `json:"num_reviews"`
+		ReviewScore     int    `json:"review_score"`
+		ReviewScoreDesc string `json:"review_score_desc"`
+		TotalPositive   int    `json:"total_positive"`
+		TotalNegative   int    `json:"total_negative"`
+		TotalReviews    int    `json:"total_reviews"`
+	} `json:"query_summary"`
+}
