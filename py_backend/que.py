@@ -123,7 +123,8 @@ def avg_genre_review_by_year(conn, genre_str: str):
                    'FROM '
                        '(SELECT *, '
                            'EXTRACT(YEAR FROM '
-                               'TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\'))::INTEGER '
+                               'TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'),'
+                               ' \'YYYY-MM-DD\'))::INTEGER '
                            'AS ye '
                        'FROM '
                            '(SELECT * '
@@ -139,8 +140,7 @@ def avg_genre_review_by_year(conn, genre_str: str):
                        'INNER JOIN "DB_schema"."Release_date" AS d '
                        'ON gri.appid = d.appid) AS dgri '
                    'GROUP BY ye '
-                   'ORDER BY ye'
-                   )
+                   'ORDER BY ye')
 
     records = cursor.fetchall()
     cursor.close()
