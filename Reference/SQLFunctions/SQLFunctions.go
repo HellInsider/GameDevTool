@@ -30,35 +30,15 @@ ELSE
 END IF;
 `
 
-/*
-var AddPrice = `
-SELECT CASE WHEN EXISTS (SELECT Prices_price_id AS temp_price_id
-
-			FROM "DB_schema"."Games_Prices" gp
-			JOIN "DB_schema"."Prices" p ON gp.Games_appid=p.appid
-			WHERE p.country IS $6)
-	THEN
-		UPDATE "DB_schema"."Prices" SET currency = $2, initial = $3, final = $4, discount_percent=$5
-		WHERE price_id = temp_price_id
-
-ELSE
-
-	BEGIN
-		DECLARE newid int;
-		INSERT INTO "DB_schema"."Prices"
-		( currency, initial, final, discount_percent, country)
-		VALUES ($2, $3, $4, $5, $6);
-		newid = currval('price_id')
-		INSERT INTO "DB_schema"."Games_Prices"
-		VALUES ($1, newid)
-	END;
-
-`
-*/
 var AddReleaseDate = `INSERT INTO  "DB_schema"."Release_date" 
 (appid, comming_soon, date, rdate_id)
 VALUES ($1, $2, $3, $1) ON CONFLICT (rdate_id) DO UPDATE
 SET  appid =$1, comming_soon = $2, date = $3`
+
+var AddReviews = `INSERT INTO  "DB_schema"."Reviews" 
+(appid, total_reviews, total_positive, total_negative, review_score, review_score_desc, review_id)
+VALUES ($1, $2, $3, $4, $5, $6, $1) ON CONFLICT (review_id) DO UPDATE
+SET  appid =$1, total_reviews = $2, total_positive = $3,total_negative = $4, review_score=$5, review_score_desc=$6`
 
 var AddRequirements = `INSERT INTO  "DB_schema"."Requirements"
 (appid, minimum, recommended, requirement_id)

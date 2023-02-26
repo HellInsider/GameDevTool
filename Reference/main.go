@@ -36,8 +36,8 @@ func main() {
 	}
 
 	flags := ParseFlags()
-	lim := 50000
-	offset := 52000
+	lim := 0
+	offset := 68100
 	if flags.AllGames {
 		processAllGames()
 	} else if flags.GameDetail {
