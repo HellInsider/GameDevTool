@@ -5,16 +5,16 @@ import (
 )
 
 type Flags struct {
-	AllGames   bool
-	GameDetail bool
-	LoadData   bool
+	RPM    int
+	Offset int
+	Limit  int
 }
 
 func ParseFlags() Flags {
 	flags := Flags{}
-	flag.BoolVar(&flags.AllGames, "allgames", false, "get base info of all games")
-	flag.BoolVar(&flags.GameDetail, "gamedetails", false, "get game details")
-	flag.BoolVar(&flags.LoadData, "downloaddata", false, "download txt files with games information")
+	flag.IntVar(&flags.RPM, "rpm", 30, "Request per minute")
+	flag.IntVar(&flags.Offset, "offset", 0, "Update from game serial number X")
+	flag.IntVar(&flags.Limit, "limit", 0, "update untill X")
 	flag.Parse()
 
 	return flags
