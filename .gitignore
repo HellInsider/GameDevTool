@@ -183,3 +183,9 @@ fabric.properties
 
 # idea folder, uncomment if you don't need it
 # .idea
+
+
+# all txt files
+*.txt
+Dataloader/src/
+Dataloader/pkg/
