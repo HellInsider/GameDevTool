@@ -1,28 +1,34 @@
 import psycopg2
 
-def init_dbtools():
-    psycopg2.lc_messages = 'en-US'
-    psycopg2.lc_monetary = 'en-US'
-    psycopg2.lc_numeric = 'en-US'
-    psycopg2.lc_time = 'en-US'
+records = []
 
-    conn = psycopg2.connect(dbname='GameDevDB', user='postgres',
+class que:
+    connection = None
+
+    def __init__(self):
+        psycopg2.lc_messages = 'en-US'
+        psycopg2.lc_monetary = 'en-US'
+        psycopg2.lc_numeric = 'en-US'
+        psycopg2.lc_time = 'en-US'
+
+        conn = psycopg2.connect(dbname='GameDevDB', user='postgres',
                         password='yellowbluevp1', host='127.0.0.1')
-    cursor = conn.cursor()
+        cursor = conn.cursor()
 
-    cursor.execute(
-        'CREATE OR REPLACE FUNCTION to_date_or_null(ADate TEXT, AFormat TEXT) RETURNS CHAR AS\n'
-        '$BODY$\n'
-        'BEGIN\n'
-        '   RETURN to_date(ADate,AFormat);\n'
-        'EXCEPTION\n'
-        'WHEN others THEN RETURN to_date(\'01 01 1000\',\'DD MM YYYY\');\n'
-        'END;\n'
-        '$BODY$ LANGUAGE plpgsql IMMUTABLE STRICT;\n')
+        cursor.execute(
+            'CREATE OR REPLACE FUNCTION to_date_or_null(ADate TEXT, AFormat TEXT) RETURNS CHAR AS\n'
+            '$BODY$\n'
+            'BEGIN\n'
+            '   RETURN to_date(ADate,AFormat);\n'
+            'EXCEPTION\n'
+            'WHEN others THEN RETURN to_date(\'01 01 1000\',\'DD MM YYYY\');\n'
+            'END;\n'
+            '$BODY$ LANGUAGE plpgsql IMMUTABLE STRICT;\n')
 
-    cursor.close()
-    return conn
+        cursor.close()
+        self.connection = conn
 
+que_instance = que()
 
 def count_games_total(connection, date1: str, date2: str):
     cursor = connection.cursor()

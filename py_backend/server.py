@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import send_file
 from flask import request
+from flask import render_template_string
 import os
 import genres
 import names_mapping
@@ -13,9 +14,63 @@ conn = None
 def helo():
     return send_file("../HTML/index.html")
 
+#@app.route("/spark.html")
+def test3():
+    source = """
+    <html>
+<head>
+    <link rel = stylesheet href="static/css/styles.css">
+    <link rel = stylesheet href="static/css/tabs.css">
+</head>
+<body>
+<a href='/'><button class='home'><p class='main_class'>HOME</p></button></a>
+<br/>
+<div class="tabs">
+
+   <div class="tab">
+       <input type="radio" id="tab-1" name="tab-group-1" checked>
+       <label for="tab-1">Tab One</label>
+
+       <div class="content">
+           {{name}}
+       </div> 
+   </div>
+
+   <div class="tab">
+       <input type="radio" id="tab-2" name="tab-group-1">
+       <label for="tab-2">Tab Two</label>
+
+       <div class="content">
+           stuff2
+       </div> 
+   </div>
+
+    <div class="tab">
+       <input type="radio" id="tab-3" name="tab-group-1">
+       <label for="tab-3">Tab Three</label>
+
+       <div class="content">
+           stuff3
+       </div> 
+   </div>
+
+</div>
+</body>
+</html>
+    """
+    return render_template_string(source, name="aa")
+    #return send_file("../HTML/" + page)
+
+
 @app.route("/<page>")
 def test(page):
-    return send_file("../HTML/" + page)
+    if (page == "spark.html"):
+        with open("../HTML/spark.html", "r") as file:
+            return render_template_string(file.read(), name="bb")
+    elif (page == "favicon.ico"):
+        return ""
+    else:
+        return send_file("../HTML/" + page)
 
 @app.route("/img", methods=['GET'])
 def img():
