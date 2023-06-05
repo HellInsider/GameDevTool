@@ -2,6 +2,9 @@ import que
 
 class data:
     genres_list = []
+    review_attribs_list = ['date', 'reviews', 'price']
+    distribution_attribs_list = ['year', 'genre', 'reviews']
+
     def __init__(self):
         conn = que.que_instance.connection
         cursor = conn.cursor()

@@ -151,3 +151,100 @@ def avg_genre_review_by_year(conn, genre_str: str):
     records = cursor.fetchall()
     cursor.close()
     return records
+
+
+def reviews_depends_on_prices(conn):
+    cursor = conn.cursor()
+    cursor.execute(
+                    'SELECT * FROM "DB_schema"."Prices"'
+    )
+                   #'SELECT review_score, initial '
+                   #'FROM ("DB_schema"."Reviews" as r '
+                   #'INNER JOIN "DB_schema"."Games_Prices" AS gpr '
+                   #'ON r."appid" = gpr."Games_appid") AS rgpr '
+                   #'INNER JOIN "DB_schema"."Prices" AS p '
+                   #'ON rgpr."Prices_price_id" = p.price_id '
+                   #'GROUP BY initial '
+                   #'ORDER BY initial')
+
+    records = cursor.fetchall()
+
+    cursor.close()
+    return records
+
+
+def avg_review_by_year(conn):
+    cursor = conn.cursor()
+    cursor.execute('SELECT ye, AVG(review_score)::FLOAT as avgrs '
+                   'FROM '
+                       '(SELECT *, '
+                           'EXTRACT(YEAR FROM '
+                               'TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'),'
+                               ' \'YYYY-MM-DD\'))::INTEGER '
+                           'AS ye '
+                       'FROM '
+                           '(SELECT * '
+                           'FROM "DB_schema"."Reviews" as r '
+                           'WHERE r.review_score != 0) AS rnotnul '
+                       'INNER JOIN "DB_schema"."Release_date" AS d '
+                       'ON rnotnul.appid = d.appid) AS dgri '
+                   'WHERE ye > 1990 '
+                   'GROUP BY ye '
+                   'ORDER BY ye')
+    global records
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
+
+def count_games_by_genre(conn):
+    cursor = conn.cursor()
+    cursor.execute('SELECT description, COUNT(gg."Games_appid") '
+                   'FROM "DB_schema"."Genre" as g '
+                   'INNER JOIN "DB_schema"."Games_Genre" AS gg '
+                   'ON g.genre_id = gg."Genre_genre_id" '
+                   'GROUP BY description')
+    global records
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
+
+def count_games_by_reviews(conn):
+    cursor = conn.cursor()
+    cursor.execute('SELECT review_score, COUNT(review_score) '
+                   'FROM "DB_schema"."Reviews" '
+                   'WHERE review_score !=0 '
+                   'GROUP BY review_score '
+                   'ORDER BY review_score')
+    global records
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
+
+def count_games_by_year(conn):
+    cursor = conn.cursor()
+    cursor.execute('SELECT ye, COUNT(ye)::FLOAT as avgrs '
+                   'FROM '
+                       '(SELECT *, '
+                           'EXTRACT(YEAR FROM '
+                               'TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'),'
+                               ' \'YYYY-MM-DD\'))::INTEGER '
+                           'AS ye '
+                       'FROM '
+                           '(SELECT * '
+                           'FROM "DB_schema"."Reviews" as r '
+                           'WHERE r.review_score != 0) AS rnotnul '
+                       'INNER JOIN "DB_schema"."Release_date" AS d '
+                       'ON rnotnul.appid = d.appid) AS dgri '
+                   'WHERE ye > 1990 '
+                   'GROUP BY ye '
+                   'ORDER BY ye')
+    global records
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
+
+
