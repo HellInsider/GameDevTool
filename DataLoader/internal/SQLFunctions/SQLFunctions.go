@@ -6,7 +6,7 @@ VALUES ($1, $2) ON CONFLICT DO NOTHING;`
 var UpdateGameDetails = `UPDATE "DB_schema"."Games" 
 SET required_age = $2, is_free = $3, dlc = $4, about_the_game = $5, detailed_description = $6, 
 short_description = $7, developers = $8, publishers = $9, packages = $10, recommendations = $11, type = $12,
-requirements_id = $1, critic_score_id = $1, release_date_id = $1, platforms_id = $1
+requirements_id = $1, critic_score_id = $1, release_date_id = $1, platforms_id = $1, last_updated = $13
 WHERE appid = $1`
 
 //VALUES ($2, $3, $4, $5, $6 , $7, $8, $9, $10 , $11, $12, $13)

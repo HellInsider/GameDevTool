@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"strconv"
+	"time"
 )
 
 const (
@@ -172,7 +173,7 @@ func WriteGameDetails(details InputDataModel.AppDetailsRequest, db *sql.DB) erro
 	_, err = tx.Exec(SQLFunctions.UpdateGameDetails, details.AppId, age,
 		details.Data.IsFree, pq.Array(details.Data.DLC), details.Data.AboutTheGame, details.Data.DetailedDescription,
 		details.Data.ShortDescription, pq.Array(details.Data.Developers), pq.Array(details.Data.Publishers),
-		pq.Array(details.Data.Packages), details.Data.Recommendations.Total, details.Data.AppType)
+		pq.Array(details.Data.Packages), details.Data.Recommendations.Total, details.Data.AppType, time.Now())
 
 	if err != nil {
 		panic(err)
