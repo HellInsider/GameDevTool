@@ -99,7 +99,8 @@ func WriteGameDetails(details InputDataModel.AppDetailsRequest, db *sql.DB) erro
 	details.Data.Price.Initial, details.Data.Price.Final, details.Data.Price.DiscountPercent,
 	details.Data.Price.Country)
 	*/
-	_, err = tx.Exec(`select addPrice($1,$2,$3,$4,$5,$6)`, details.Data.Price.AppId, details.Data.Price.Currency,
+
+	_, err = tx.Exec(`select "DB_schema"."addPrice"($1,$2,$3,$4,$5,$6)`, details.Data.Price.AppId, details.Data.Price.Currency,
 		details.Data.Price.Initial, details.Data.Price.Final, details.Data.Price.DiscountPercent,
 		details.Data.Price.Country)
 	if err != nil {
