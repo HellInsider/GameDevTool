@@ -13,11 +13,12 @@ distrib_attribs_list = globals.data_storage.distribution_attribs_list
 prices_range = (0, 1000)
 
 layout = html.Div([
+    dcc.Checklist(options=[{"label": "Select All", "value": "All"}], value=[], id= 'select-all'),
     dcc.Checklist(genres_list, id='chklst', style= {'display': 'flex', 'flex-wrap': 'wrap', 'align-content': 'left', 'justify-content': 'left'}),
     html.Div(children='select date'),
     dcc.DatePickerRange(
         id='release-date',
-        start_date=date(2017, 5, 3),
+        start_date=date(2015, 1, 1),
         end_date=date.today()
     ),
     #dcc.RangeSlider(prices_range[0], prices_range[1], id='price'),
@@ -32,20 +33,33 @@ layout = html.Div([
                    , id='button-submit'
                    , n_clicks=0)])
 
-    ], style = {'max-width': '70%', 'position': 'relative', 'top': '40px', 'left': '40px'})
+    ], style = {'max-width': '70%', 'position': 'relative', 'top': '10px', 'left': '15%',
+                'background-color': 'rgba(128, 128, 128, 0.75)', 'padding': '30px'})
 
 
-def bar_query(attrib):
+@callback(
+    Output("chklst", "value"),
+    [Input("select-all", "value")],
+    [State("chklst", "options")],
+)
+def select_all_none(all_selected, options):
+    all_or_none = []
+    all_or_none = [option for option in options if all_selected]
+    return all_or_none
+
+
+def bar_query(attrib, genre_checks, start_date, end_date):
     que.records.clear()
 
     if (attrib not in distrib_attribs_list):
         attrib = distrib_attribs_list[0]
     if (attrib == 'year'):
-        que.count_games_by_year(que.que_instance.connection)
+        que.count_games_by_year(que.que_instance.connection, genre_checks, start_date, end_date)
     elif (attrib == 'genre'):
-        que.count_games_by_genre(que.que_instance.connection)
+        que.count_games_by_genre(que.que_instance.connection, genre_checks, start_date, end_date)
     elif (attrib == 'reviews'):
-        que.count_games_by_reviews(que.que_instance.connection)
+        que.count_games_by_reviews(que.que_instance.connection, genre_checks, start_date, end_date)
+
 
 @callback(Output('tabscontent', 'children'),
           Input('tabs', 'value'))
@@ -71,13 +85,13 @@ def render_content(tab):
     , State("release-date", 'end_date')
     #, State("price", 'value')
     )
-def tab1_submit(n, chekss, start, end, price):
+def tab1_submit(n, chekss, start, end):
     print(n)
     if (n == 0):
         return None
 
     que.records = []
-    que.avg_review_by_year(que.que_instance.connection)
+    que.avg_genre_review_by_year(que.que_instance.connection, chekss, start, end)
     return dcc.Graph(
         figure={
             'data': [{
@@ -95,15 +109,15 @@ def tab1_submit(n, chekss, start, end, price):
     , State("chklst", 'value')
     , State("release-date", 'start_date')
     , State("release-date", 'end_date')
-    , State("price", 'value')
+    #, State("price", 'value')
     , State("tab2-attrib", 'value')
     )
-def tab2_submit(n, chekss, start, end, price, attrib):
+def tab2_submit(n, chekss, start, end, attrib):
     print(n)
     if (n == 0):
         return None
 
-    bar_query(attrib)
+    bar_query(attrib, chekss, start, end)
     return dcc.Graph(
         figure={
             'data': [{

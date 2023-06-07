@@ -123,7 +123,7 @@ def median_genre_review_by_year(conn, genre_str: str):
     return records
 
 
-def avg_genre_review_by_year(conn, genre_str: str):
+def avg_genre_review_by_year(conn, genre_arr, date1, date2):
     cursor = conn.cursor()
     cursor.execute('SELECT ye, AVG(review_score)::FLOAT as avgrs '
                    'FROM '
@@ -134,20 +134,25 @@ def avg_genre_review_by_year(conn, genre_str: str):
                            'AS ye '
                        'FROM '
                            '(SELECT * '
-                           'FROM "DB_schema"."Reviews" as r '
+                           'FROM "DB_schema"."Reviews" AS r '
                            'INNER JOIN '
                                '(SELECT gg."Games_appid" '
                                'FROM "DB_schema"."Games_Genre" AS gg '
                                'INNER JOIN "DB_schema"."Genre" AS g '
                                'ON gg."Genre_genre_id" = g.genre_id '
-                               'WHERE g.description = \'' + genre_str + '\') as gi '
+                               'WHERE g.description = \''
+                               + '\' OR g.description = \''.join(genre_arr) + '\') AS gi '
                            'ON r."appid" = gi."Games_appid" '
                            'WHERE r.review_score != 0) AS gri '
                        'INNER JOIN "DB_schema"."Release_date" AS d '
-                       'ON gri.appid = d.appid) AS dgri '
+                       'ON gri.appid = d.appid '
+                       'WHERE TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' '
+                       'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\') AS dgri '
+                   'WHERE ye > 1990 '
                    'GROUP BY ye '
                    'ORDER BY ye')
 
+    global records
     records = cursor.fetchall()
     cursor.close()
     return records
@@ -197,12 +202,18 @@ def avg_review_by_year(conn):
     return records
 
 
-def count_games_by_genre(conn):
+def count_games_by_genre(conn, genre_arr, date1, date2):
     cursor = conn.cursor()
     cursor.execute('SELECT description, COUNT(gg."Games_appid") '
-                   'FROM "DB_schema"."Genre" as g '
+                   'FROM "DB_schema"."Genre" AS g '
                    'INNER JOIN "DB_schema"."Games_Genre" AS gg '
                    'ON g.genre_id = gg."Genre_genre_id" '
+                   'INNER JOIN "DB_schema"."Release_date" AS d '
+                   'ON gg."Games_appid" = d.appid '
+                   'WHERE g.description = \''
+                   + '\' OR g.description = \''.join(genre_arr) + '\' '
+                   'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' '
+                   'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\' '
                    'GROUP BY description')
     global records
     records = cursor.fetchall()
@@ -210,10 +221,23 @@ def count_games_by_genre(conn):
     return records
 
 
-def count_games_by_reviews(conn):
+def count_games_by_reviews(conn, genre_arr, date1, date2):
     cursor = conn.cursor()
     cursor.execute('SELECT review_score, COUNT(review_score) '
-                   'FROM "DB_schema"."Reviews" '
+                   'FROM "DB_schema"."Reviews" as r '
+                           'INNER JOIN '
+                               '(SELECT gg."Games_appid" '
+                               'FROM "DB_schema"."Games_Genre" AS gg '
+                               'INNER JOIN "DB_schema"."Genre" AS g '
+                               'ON gg."Genre_genre_id" = g.genre_id '
+                               'INNER JOIN "DB_schema"."Release_date" AS d '
+                               'ON gg."Games_appid" = d.appid '
+                               'WHERE g.description = \''
+                               + '\' OR g.description = \''.join(genre_arr) + '\''
+                               'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' '
+                               'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\' '
+                               ') AS gi '
+                           'ON r."appid" = gi."Games_appid" '
                    'WHERE review_score !=0 '
                    'GROUP BY review_score '
                    'ORDER BY review_score')
@@ -223,7 +247,7 @@ def count_games_by_reviews(conn):
     return records
 
 
-def count_games_by_year(conn):
+def count_games_by_year(conn, genre_arr, date1, date2):
     cursor = conn.cursor()
     cursor.execute('SELECT ye, COUNT(ye)::FLOAT as avgrs '
                    'FROM '
@@ -233,12 +257,17 @@ def count_games_by_year(conn):
                                ' \'YYYY-MM-DD\'))::INTEGER '
                            'AS ye '
                        'FROM '
-                           '(SELECT * '
-                           'FROM "DB_schema"."Reviews" as r '
-                           'WHERE r.review_score != 0) AS rnotnul '
+                           '(SELECT gg."Games_appid" '
+                           'FROM "DB_schema"."Games_Genre" AS gg '
+                           'INNER JOIN "DB_schema"."Genre" AS g '
+                           'ON gg."Genre_genre_id" = g.genre_id '
+                           'WHERE g.description = \''
+                           + '\' OR g.description = \''.join(genre_arr) + '\') AS gi '
                        'INNER JOIN "DB_schema"."Release_date" AS d '
-                       'ON rnotnul.appid = d.appid) AS dgri '
-                   'WHERE ye > 1990 '
+                       'ON d."appid" = gi."Games_appid"'
+                       'WHERE TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' '
+                       'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\') AS dgri '
+                   'WHERE ye > 1990 AND ye < 2030 '
                    'GROUP BY ye '
                    'ORDER BY ye')
     global records

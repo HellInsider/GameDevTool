@@ -2,7 +2,7 @@ import que
 
 class data:
     genres_list = []
-    review_attribs_list = ['date', 'reviews', 'price']
+    review_attribs_list = ['date', 'reviews number', 'price']
     distribution_attribs_list = ['year', 'genre', 'reviews']
 
     def __init__(self):
