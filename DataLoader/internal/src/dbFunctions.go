@@ -12,16 +12,9 @@ import (
 	"time"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "secure-password"
-	dbname   = "connect-db"
-)
-
 // const SqlConnect = "user=GameDevWorker password=password dbname=GameDevDatabase sslmode=disable"
-const SqlConnect = "user=postgres password=admin dbname=GameDevDatabase sslmode=disable"
+// const SqlConnect = "user=postgres password=admin dbname=GameDevDatabase sslmode=disable"
+const SqlConnect = "user=secsubadmin password=123pos dbname=GameDev sslmode=require host=194.67.105.19"
 
 func WriteBaseGameInfo(games InputDataModel.AllGamesRequest, db *sql.DB) error {
 	for _, app := range games.Apps {
