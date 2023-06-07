@@ -202,6 +202,31 @@ def avg_review_by_year(conn):
     return records
 
 
+def avg_review_by_numreviews(conn, genre_arr, date1, date2):
+    cursor = conn.cursor()
+    cursor.execute('SELECT total_reviews, AVG(review_score)::FLOAT as avgrs  '
+                   'FROM "DB_schema"."Reviews" as r '
+                           'INNER JOIN '
+                               '(SELECT gg."Games_appid" '
+                               'FROM "DB_schema"."Games_Genre" AS gg '
+                               'INNER JOIN "DB_schema"."Genre" AS g '
+                               'ON gg."Genre_genre_id" = g.genre_id '
+                               'INNER JOIN "DB_schema"."Release_date" AS d '
+                               'ON gg."Games_appid" = d.appid '
+                               'WHERE g.description = \''
+                               + '\' OR g.description = \''.join(genre_arr) + '\''
+                               'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') >= \'' + date1 + '\' '
+                               'AND TO_DATE(to_date_or_null(d.date, \'DD Mon, YYYY\'), \'YYYY-MM-DD\') < \'' + date2 + '\' '
+                               ') AS gi '
+                           'ON r."appid" = gi."Games_appid" '
+                   'WHERE review_score !=0 '
+                   'GROUP BY total_reviews '
+                   'ORDER BY total_reviews')
+    global records
+    records = cursor.fetchall()
+    cursor.close()
+    return records
+
 def count_games_by_genre(conn, genre_arr, date1, date2):
     cursor = conn.cursor()
     cursor.execute('SELECT description, COUNT(gg."Games_appid") '

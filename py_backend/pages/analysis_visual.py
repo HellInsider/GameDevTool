@@ -1,10 +1,14 @@
+from fontTools.misc.plistlib import end_date
+
 import que
 import globals
 
 import flask
 from dash import Dash, html, dcc, Input, Output, State, register_page, callback
 from datetime import date
+import scipy
 
+from scipy import signal
 
 register_page(__name__)
 genres_list = globals.data_storage.genres_list
@@ -61,6 +65,22 @@ def bar_query(attrib, genre_checks, start_date, end_date):
         que.count_games_by_reviews(que.que_instance.connection, genre_checks, start_date, end_date)
 
 
+def plot_query(attrib, genre_checks, start_date, end_date):
+    que.records.clear()
+
+    if (attrib not in review_attribs_list):
+        attrib = review_attribs_list[0]
+    if (attrib == 'date'):
+        que.avg_genre_review_by_year(que.que_instance.connection, genre_checks, start_date, end_date)
+    elif (attrib == 'reviews number'):
+        que.avg_review_by_numreviews(que.que_instance.connection, genre_checks, start_date, end_date)
+        x = [r[0] for r in que.records]
+        y = [r[1] for r in que.records]
+        y = signal.savgol_filter(y, 101, 3)
+        que.records = [(x[i], y[i]) for i in range(len(x))]
+        print('10')
+
+
 @callback(Output('tabscontent', 'children'),
           Input('tabs', 'value'))
 def render_content(tab):
@@ -83,15 +103,15 @@ def render_content(tab):
     , State("chklst", 'value')
     , State("release-date", 'start_date')
     , State("release-date", 'end_date')
+    , State("tab1-attrib", 'value')
     #, State("price", 'value')
     )
-def tab1_submit(n, chekss, start, end):
+def tab1_submit(n, chekss, start, end, attrib):
     print(n)
     if (n == 0):
         return None
 
-    que.records = []
-    que.avg_genre_review_by_year(que.que_instance.connection, chekss, start, end)
+    plot_query(attrib, chekss, start, end)
     return dcc.Graph(
         figure={
             'data': [{
