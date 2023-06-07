@@ -12,16 +12,9 @@ import (
 	"time"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "secure-password"
-	dbname   = "connect-db"
-)
-
 // const SqlConnect = "user=GameDevWorker password=password dbname=GameDevDatabase sslmode=disable"
-const SqlConnect = "user=postgres password=admin dbname=GameDevDatabase sslmode=disable"
+// const SqlConnect = "user=postgres password=admin dbname=GameDevDatabase sslmode=disable"
+const SqlConnect = "user=secsubadmin password=123pos dbname=GameDev sslmode=require host=194.67.105.19"
 
 func WriteBaseGameInfo(games InputDataModel.AllGamesRequest, db *sql.DB) error {
 	for _, app := range games.Apps {
@@ -99,7 +92,8 @@ func WriteGameDetails(details InputDataModel.AppDetailsRequest, db *sql.DB) erro
 	details.Data.Price.Initial, details.Data.Price.Final, details.Data.Price.DiscountPercent,
 	details.Data.Price.Country)
 	*/
-	_, err = tx.Exec(`select addPrice($1,$2,$3,$4,$5,$6)`, details.Data.Price.AppId, details.Data.Price.Currency,
+
+	_, err = tx.Exec(`select "DB_schema"."addPrice"($1,$2,$3,$4,$5,$6)`, details.Data.Price.AppId, details.Data.Price.Currency,
 		details.Data.Price.Initial, details.Data.Price.Final, details.Data.Price.DiscountPercent,
 		details.Data.Price.Country)
 	if err != nil {
