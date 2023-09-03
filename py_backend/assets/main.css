@@ -1,0 +1,26 @@
+html {
+  height: 100%;
+}
+body {
+  min-height: 100%;
+  background-image: url("bgr_main.png");
+  background-size: 100%;
+  font-family: sans-serif;
+}
+div
+{
+  justify-content: center;
+}
+
+button {
+  background-color: rgba(31, 119, 180, 0.75);
+  border: none;
+  color: white;
+  padding: 13px 23px;
+  margin: 13px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
